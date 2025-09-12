@@ -43,14 +43,6 @@
             transform: translateY(-1px);
             box-shadow: 0 8px 20px rgba(78, 205, 196, 0.3);
         }
-        .audio-btn {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            transition: all 0.3s ease;
-        }
-        .audio-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 20px rgba(37, 117, 252, 0.3);
-        }
         .phrase-text {
             font-size: 1.25rem;
             line-height: 1.6;
@@ -79,9 +71,6 @@
                 <button id="downloadBtn" class="copy-btn text-white font-semibold py-4 px-8 rounded-xl shadow-lg opacity-50 cursor-not-allowed text-xl" disabled>
                     Baixar Imagem
                 </button>
-                <button id="audioBtn" class="audio-btn text-white font-semibold py-4 px-8 rounded-xl shadow-lg opacity-50 cursor-not-allowed text-xl" disabled>
-                    Reproduzir Áudio
-                </button>
             </div>
         </div>
         
@@ -96,41 +85,204 @@
     </div>
 
     <script>
-        // Mesmos arrays e funções do seu código (omitidos aqui para reduzir)
-        // ...
+        // Data arrays
+        const templates = [
+            "esse [animal] é [adjective]!",
+            "eu quero [verb] nesse [animal].",
+            "é [animal] ou [animal]?",
+            "tem que ter pelo menos {1-10} [animal]{s} [location]!",
+            "o [animal] ta bonito [adjective]!",
+            "vamo comer [animal] [location].",
+            "meia duzia de [animal] [adjective] [location]",
+            "maionese com gosto de [animal]",
+            "escutem aí meu album novo seus [adjective]",
+            "o melhor album de rap é o [animal] [adjective]",
+            "só como [animal] recheado",
+            "[animal] [adjective] não é coisa de amigo não",
+            "não aguentou o rojão do [adjective]",
+            "nem fale comigo na porra do [adjective]",
+            "vai limpar esse [animal] [adjective]",
+            "bora tomar uma pitú com [animal] [location]",
+            "doutor [animal] [adjective] pra você",
+            "to aqui com minha tia [animal] [location]",
+            "to gravando um album [adjective] [location]",
+            "tamo comendo um passa[animal] [location]",
+            "elas passam a buceta no [animal] uma da outra",
+            "vou comprar pele de [animal] pra tatuar",
+            "vou raspar o [animal] pra ir [location]",
+            "esse [animal] é puxadinho também q nem os olhinhos?",
+            "vou sair do grupo se vocês não pararem de [verb] meu [animal] [location]",
+            "minha nova banda se chama the [adjective]s",
+            "[animal] hoje em dia é uma coisa muito séria",
+            "hoje a comida é [animal] com leite",
+            "eae [animal], ô [animal]",
+            "[animal] assado no churras hoje [location]",
+            "o tira gosto vai ser [animal] com farinha",
+            "to gravando sons de [animal] pra minha nova musica",
+            "novo selo [animal] [adjective] records",
+            "jazz é [adjective]",
+            "ouçam minha nova musica: its never [adjective] in [animal]",
+            "por que você não faz um gerador de [animal]",
+            "esse bixo nao merece nem [animal] melado no munguzá",
+            "[animal]quiet",
+            "sinceramente não tenho mais tara nenhuma de ta [location]",
+            "vocês tão fazendo um [animal] com a minha imagem sem a minha permissão [location]",
+            "vou imitar o silvio santos [location]",
+            "engole o meu [animal] bando de fdp",
+            "enfie um ingresso no [animal] e outro no ouvidinho"
+        ];
 
-        // Fala a frase em áudio
-        function speakPhrase(text) {
-            if (!('speechSynthesis' in window)) {
-                alert("Seu navegador não suporta a síntese de voz.");
-                return;
-            }
+        const animals = [
+            "cuzinho", "priquitinho", "peidinho", "cuzinho chinês", "buceta", "cuzinho",
+            "teu cuzinho", "cuscuz rechado", "novinho", "leitinho", "cocô", "cu do dimas",
+            "césio 137", "amianto", "cuzito", "cúsio 137", "batata", "jazz"
+        ];
 
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = "pt-BR";  // Português
-            utterance.rate = 1;        // Velocidade normal
-            utterance.pitch = 1;       // Tom normal
+        const adjectives = [
+            "miudinho", "sujinho", "arrombadinho", "apertadinho", "gostosinho", "fedorentinho",
+            "mijado", "nazista", "desafinado", "suculento", "desaforado", "danado", "recheado",
+            "sem palavrão", "lo-fi", "virtuozinho", "noise"
+        ];
 
-            window.speechSynthesis.cancel(); // cancela falas anteriores
-            window.speechSynthesis.speak(utterance);
+        const verbs = [
+            "meter", "fuder", "cagar", "beijar", "trepar", "amar", "mijar", "tocar",
+            "mamar", "chorar", "comer", "chupar", "ensaiar"
+        ];
+
+        const locations = [
+            "em jacarecica", "no paulista", "aqui", "na casa do mago", "na amelia rosa",
+            "no shoegaze", "na casa do normando", "no album novo do sketch", "na casa do berna",
+            "na casa do seba", "na casa do berna", "em pilar", "na porra da rua", "na delegacia",
+            "no lofaizera", "no village", "na rabichola", "na crooked", "na casa do possa",
+            "na casa do paulo poeta", "no carro do normando"
+        ];
+
+        // State
+        let currentPhrase = '';
+        let totalGenerated = 0;
+        let phraseHistory = [];
+
+        // Helper functions
+        function getRandomItem(array) {
+            return array[Math.floor(Math.random() * array.length)];
         }
 
-        // Modificação no displayPhrase
+        function getRandomNumber(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generatePhrase() {
+            let template = getRandomItem(templates);
+            let phrase = template;
+
+            // Replace number ranges
+            phrase = phrase.replace(/\{(\d+)-(\d+)\}/g, (match, min, max) => {
+                return getRandomNumber(parseInt(min), parseInt(max));
+            });
+
+            // Replace placeholders
+            phrase = phrase.replace(/\[animal\]/g, () => getRandomItem(animals));
+            phrase = phrase.replace(/\[adjective\]/g, () => getRandomItem(adjectives));
+            phrase = phrase.replace(/\[verb\]/g, () => getRandomItem(verbs));
+            phrase = phrase.replace(/\[location\]/g, () => getRandomItem(locations));
+
+            // Handle plurals
+            phrase = phrase.replace(/\{s\}/g, 's');
+
+            return phrase;
+        }
+
         function displayPhrase(phrase) {
             const display = document.getElementById('phraseDisplay');
             display.innerHTML = `<span class="fade-in">${phrase}</span>`;
             
-            // Habilita botões
+            // Enable download button
             const downloadBtn = document.getElementById('downloadBtn');
             downloadBtn.disabled = false;
             downloadBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-
-            const audioBtn = document.getElementById('audioBtn');
-            audioBtn.disabled = false;
-            audioBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         }
 
-        // Eventos
+        function downloadImage() {
+            if (!currentPhrase) return;
+
+            // Create canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = 800;
+            canvas.height = 600;
+            
+            // Load background image
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                // Draw background
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                // Add dark overlay
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Configure text
+                ctx.font = 'italic 35px Tahoma, sans-serif';
+                ctx.fillStyle = '#ffe169';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // Add text shadow
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+                
+                // Word wrap function
+                function wrapText(text, x, y, maxWidth, lineHeight) {
+                    const words = text.split(' ');
+                    let line = '';
+                    let lines = [];
+                    
+                    for (let n = 0; n < words.length; n++) {
+                        const testLine = line + words[n] + ' ';
+                        const metrics = ctx.measureText(testLine);
+                        const testWidth = metrics.width;
+                        
+                        if (testWidth > maxWidth && n > 0) {
+                            lines.push(line);
+                            line = words[n] + ' ';
+                        } else {
+                            line = testLine;
+                        }
+                    }
+                    lines.push(line);
+                    
+                    // Draw lines centered
+                    const startY = y - ((lines.length - 1) * lineHeight) / 2;
+                    for (let i = 0; i < lines.length; i++) {
+                        ctx.fillText(lines[i], x, startY + (i * lineHeight));
+                    }
+                }
+                
+                // Draw text with word wrap
+                wrapText(currentPhrase, canvas.width / 2, canvas.height / 2, canvas.width - 100, 50);
+                
+                // Download image
+                canvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'frase-aleatoria.jpg';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 'image/jpeg', 0.9);
+            };
+            
+            img.src = 'https://i.imgur.com/zUqFgmq.jpg';
+        }
+
+        // Event listeners
         document.getElementById('generateBtn').addEventListener('click', () => {
             currentPhrase = generatePhrase();
             displayPhrase(currentPhrase);
@@ -138,11 +290,7 @@
 
         document.getElementById('downloadBtn').addEventListener('click', downloadImage);
 
-        document.getElementById('audioBtn').addEventListener('click', () => {
-            if (currentPhrase) speakPhrase(currentPhrase);
-        });
-
-        // Atalho: espaço gera frase
+        // Keyboard shortcut
         document.addEventListener('keydown', (e) => {
             if (e.key === ' ' && e.target.tagName !== 'INPUT') {
                 e.preventDefault();
@@ -150,5 +298,5 @@
             }
         });
     </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97e17d0523bb64bb',t:'MTc1NzcwMTk1NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
