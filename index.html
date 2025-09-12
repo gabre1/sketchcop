@@ -10,7 +10,7 @@
         body { font-family: 'Inter', sans-serif; }
         .gradient-bg {
             /* Imagem padrão de boca fechada */
-            background: url('https://i.imgur.com/zUqFgmq.jpg') center/cover no-repeat;
+            background: url('https://i.imgur.com/uMcYYjX.jpg') center/cover no-repeat;
             position: relative;
             transition: background-image 0.05s ease-in-out; /* Transição suave para a imagem de fundo */
         }
@@ -130,9 +130,9 @@
             "na casa do paulo poeta", "no carro do normando"
         ];
 
-        // URLs das imagens de fundo
-        const BACKGROUND_CLOSED_MOUTH = 'https://imgur.com/uMcYYjX'; // Imagem com a boca fechada
-        const BACKGROUND_OPEN_MOUTH = 'https://imgur.com/xL6rg8p'; // Imagem com a boca aberta (a que você enviou)
+        // URLs das imagens de fundo - CORRIGIDAS PARA LINKS DIRETOS
+        const BACKGROUND_CLOSED_MOUTH = 'https://i.imgur.com/uMcYYjX.jpg'; // Imagem com a boca fechada
+        const BACKGROUND_OPEN_MOUTH = 'https://i.imgur.com/xL6rg8p.jpg'; // Imagem com a boca aberta
 
         // State
         let currentPhrase = '';
@@ -280,8 +280,6 @@
                     URL.revokeObjectURL(url);
                 }, 'image/jpeg', 0.9);
             };
-            // AQUI ESTAVA BACKGROUND_ORIGINAL, AGORA É BACKGROUND_CLOSED_MOUTH
-            // img.src = BACKGROUND_ORIGINAL; // Garante que o download seja com a boca fechada
         }
 
         // Event listeners
