@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Frases Aleatórias</title>
+    <title>Gerador de Frases Aleatórias com ElevenLabs</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .gradient-bg {
-            /* Imagem padrão de boca fechada */
             background: url('https://i.imgur.com/uMcYYjX.jpg') center/cover no-repeat;
             position: relative;
-            transition: background-image 0.05s ease-in-out; /* Transição suave para a imagem de fundo */
+            transition: background-image 0.05s ease-in-out;
         }
         .gradient-bg::before {
             content: '';
@@ -85,7 +84,7 @@
     </div>
 
     <script>
-        // Data arrays (mantidos como estavam)
+        // Data arrays
         const templates = [
             "esse [animal] é [adjective]!", "eu quero [verb] nesse [animal].", "é [animal] ou [animal]?",
             "tem que ter pelo menos {1-10} [animal]{s} [location]!", "o [animal] ta bonito [adjective]!",
@@ -130,14 +129,15 @@
             "na casa do paulo poeta", "no carro do normando"
         ];
 
-        // URLs das imagens de fundo - CORRIGIDAS PARA LINKS DIRETOS
-        const BACKGROUND_CLOSED_MOUTH = 'https://i.imgur.com/uMcYYjX.jpg'; // Imagem com a boca fechada
-        const BACKGROUND_OPEN_MOUTH = 'https://i.imgur.com/xL6rg8p.jpg'; // Imagem com a boca aberta
+        // URLs das imagens de fundo
+        const BACKGROUND_CLOSED_MOUTH = 'https://i.imgur.com/uMcYYjX.jpg';
+        const BACKGROUND_OPEN_MOUTH = 'https://i.imgur.com/xL6rg8p.jpg';
 
         // State
         let currentPhrase = '';
-        let animationInterval; // Variável para controlar o intervalo da animação
-        let isMouthOpen = false; // Estado atual da boca (aberta/fechada)
+        let animationInterval;
+        let isMouthOpen = false;
+        let currentAudio = null; // Para controlar o áudio atual
 
         // Helper functions
         function getRandomItem(array) {
@@ -147,56 +147,98 @@
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
-        // Função para alternar a imagem de fundo
+        // Funções de animação da boca
         function toggleMouthImage() {
             const body = document.body;
-            if (isMouthOpen) {
-                body.style.backgroundImage = `url('${BACKGROUND_CLOSED_MOUTH}')`;
-            } else {
-                body.style.backgroundImage = `url('${BACKGROUND_OPEN_MOUTH}')`;
-            }
+            body.style.backgroundImage = `url('${isMouthOpen ? BACKGROUND_CLOSED_MOUTH : BACKGROUND_OPEN_MOUTH}')`;
             isMouthOpen = !isMouthOpen;
         }
 
         function startMouthAnimation() {
-            // Inicia a animação de boca alternando a cada 100ms
+            if (animationInterval) clearInterval(animationInterval);
             animationInterval = setInterval(toggleMouthImage, 100);
         }
 
         function stopMouthAnimation() {
-            clearInterval(animationInterval); // Para a animação
-            document.body.style.backgroundImage = `url('${BACKGROUND_CLOSED_MOUTH}')`; // Garante que a boca volte a fechar
+            clearInterval(animationInterval);
+            document.body.style.backgroundImage = `url('${BACKGROUND_CLOSED_MOUTH}')`;
             isMouthOpen = false;
         }
 
-        function speakPhrase(phrase) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                
-                const utterance = new SpeechSynthesisUtterance(phrase);
-                
-                utterance.lang = 'pt-BR';
-                utterance.pitch = 0.5; 
-                utterance.rate = 1.1;
+        // --- NOVA FUNÇÃO speakPhrase COM ELEVENLABS ---
+        async function speakPhrase(phrase) {
+            // Se houver um áudio tocando, pare-o
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
 
-                // Eventos para iniciar e parar a animação da boca
-                utterance.onstart = () => {
+            const apiKey = "sk_fc5c282037ebb1776d8fdb1f8b61da221aee3a3e9c3b9093";
+            const voiceId = "3sIPB0HU61vlpMzHtxAs";
+            const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
+
+            const headers = {
+                "Accept": "audio/mpeg",
+                "Content-Type": "application/json",
+                "xi-api-key": apiKey
+            };
+
+            const data = {
+                "text": phrase,
+                "model_id": "eleven_multilingual_v2", // Modelo recomendado para português
+                "voice_settings": {
+                    "stability": 0.5,
+                    "similarity_boost": 0.75
+                }
+            };
+
+            // Desativa o botão enquanto o áudio está sendo gerado para evitar cliques duplos
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('generateBtn').classList.add('opacity-50', 'cursor-not-allowed');
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro na API da ElevenLabs: ${response.statusText}`);
+                }
+
+                const blob = await response.blob();
+                const audioUrl = URL.createObjectURL(blob);
+                currentAudio = new Audio(audioUrl);
+                
+                currentAudio.onplay = () => {
                     startMouthAnimation();
                 };
-                utterance.onend = () => {
+                currentAudio.onended = () => {
                     stopMouthAnimation();
+                    // Reativa o botão quando o áudio terminar
+                    document.getElementById('generateBtn').disabled = false;
+                    document.getElementById('generateBtn').classList.remove('opacity-50', 'cursor-not-allowed');
                 };
-                utterance.onerror = (event) => {
-                    console.error('Erro na síntese de fala:', event.error);
-                    stopMouthAnimation(); // Garante que a animação pare mesmo em caso de erro
+                 currentAudio.onerror = () => {
+                    console.error("Erro ao tocar o áudio.");
+                    stopMouthAnimation();
+                    // Reativa o botão em caso de erro
+                    document.getElementById('generateBtn').disabled = false;
+                    document.getElementById('generateBtn').classList.remove('opacity-50', 'cursor-not-allowed');
                 };
+                
+                currentAudio.play();
 
-                window.speechSynthesis.speak(utterance);
-            } else {
-                console.log('Seu navegador não suporta a síntese de fala.');
+            } catch (error) {
+                console.error('Falha ao gerar o áudio:', error);
+                stopMouthAnimation(); // Garante que a animação pare em caso de erro
+                 // Reativa o botão em caso de erro
+                document.getElementById('generateBtn').disabled = false;
+                document.getElementById('generateBtn').classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
-
+        
         function generatePhrase() {
             let template = getRandomItem(templates);
             let phrase = template;
@@ -222,8 +264,7 @@
 
         function downloadImage() {
             if (!currentPhrase) return;
-            // Para o download da imagem, sempre usaremos a boca fechada para o resultado final
-            stopMouthAnimation(); 
+            stopMouthAnimation();
 
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -232,8 +273,7 @@
             const img = new Image();
             img.crossOrigin = 'anonymous';
             
-            // Usar a imagem de boca fechada para o download
-            img.src = BACKGROUND_CLOSED_MOUTH; 
+            img.src = BACKGROUND_CLOSED_MOUTH;
 
             img.onload = function() {
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
