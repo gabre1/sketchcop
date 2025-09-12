@@ -1,601 +1,301 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Gerador de Frases Aleatórias</title>
-
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <style>
-
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-        body { font-family: 'Inter', sans-serif; }
-
-        .gradient-bg {
-
-            /* Imagem padrão de boca fechada */
-
-            background: url('https://i.imgur.com/uMcYYjX.jpg') center/cover no-repeat;
-
-            position: relative;
-
-            transition: background-image 0.05s ease-in-out; /* Transição suave para a imagem de fundo */
-
-        }
-
-        .gradient-bg::before {
-
-            content: '';
-
-            position: absolute;
-
-            top: 0;
-
-            left: 0;
-
-            right: 0;
-
-            bottom: 0;
-
-            background: rgba(0, 0, 0, 0.4);
-
-            z-index: 1;
-
-        }
-
-        .phrase-card {
-
-            background: rgba(255, 255, 255, 0.95);
-
-            backdrop-filter: blur(10px);
-
-            border: 1px solid rgba(255, 255, 255, 0.2);
-
-        }
-
-        .generate-btn {
-
-            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-
-            transition: all 0.3s ease;
-
-        }
-
-        .generate-btn:hover {
-
-            transform: translateY(-2px);
-
-            box-shadow: 0 10px 25px rgba(75, 85, 99, 0.3);
-
-        }
-
-        .copy-btn {
-
-            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-
-            transition: all 0.3s ease;
-
-        }
-
-        .copy-btn:hover {
-
-            transform: translateY(-1px);
-
-            box-shadow: 0 8px 20px rgba(75, 85, 99, 0.3);
-
-        }
-
-        .phrase-text {
-
-            font-size: 1.25rem;
-
-            line-height: 1.6;
-
-            color: #2d3748;
-
-        }
-
-        .text-shadow-lg {
-
-            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
-
-        }
-
-        .fade-in {
-
-            animation: fadeIn 0.5s ease-in;
-
-        }
-
-        @keyframes fadeIn {
-
-            from { opacity: 0; transform: translateY(10px); }
-
-            to { opacity: 1; transform: translateY(0); }
-
-        }
-
-    </style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Frases Aleatórias</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg {
+            /* Imagem padrão de boca fechada */
+            background: url('https://i.imgur.com/uMcYYjX.jpg') center/cover no-repeat;
+            position: relative;
+            transition: background-image 0.05s ease-in-out; /* Transição suave para a imagem de fundo */
+        }
+        .gradient-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1;
+        }
+        .phrase-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .generate-btn {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            transition: all 0.3s ease;
+        }
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(75, 85, 99, 0.3);
+        }
+        .copy-btn {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            transition: all 0.3s ease;
+        }
+        .copy-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(75, 85, 99, 0.3);
+        }
+        .phrase-text {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            color: #2d3748;
+        }
+        .text-shadow-lg {
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
-
 <body class="gradient-bg min-h-screen">
-
-    <div class="relative z-10 min-h-screen">
-
-        <div class="pt-8 pb-4">
-
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-
-                <button id="generateBtn" class="generate-btn text-white font-semibold py-4 px-8 rounded-xl shadow-lg text-xl">
-
-                    Gerar Frase
-
-                </button>
-
-                <button id="downloadBtn" class="copy-btn text-white font-semibold py-4 px-8 rounded-xl shadow-lg opacity-50 cursor-not-allowed text-xl" disabled>
-
-                    Baixar Imagem
-
-                </button>
-
-            </div>
-
-        </div>
-
-        
-
-        <div class="absolute bottom-0 left-0 right-0 pb-8">
-
-            <div class="text-center max-w-4xl mx-auto px-4">
-
-                <div id="phraseDisplay" class="min-h-[200px] flex items-center justify-center text-shadow-lg max-w-md mx-auto" style="font-family: Tahoma, sans-serif; font-size: 35px; color: #ffe169; font-style: italic; word-wrap: break-word; hyphens: auto; line-height: 1.4;">
-
-                    <span class="opacity-80">Clique para gerar uma frase!</span>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
-    <script>
-
-        // Data arrays (mantidos como estavam)
-
-        const templates = [
-
-            "esse [animal] é [adjective]!", "eu quero [verb] nesse [animal].", "é [animal] ou [animal]?",
-
-            "tem que ter pelo menos {1-10} [animal]{s} [location]!", "o [animal] ta bonito [adjective]!",
-
-            "vamo comer [animal] [location].", "meia duzia de [animal] [adjective] [location]",
-
-            "maionese com gosto de [animal]", "escutem aí meu album novo seus [adjective]",
-
-            "o melhor album de rap é o [animal] [adjective]", "só como [animal] recheado",
-
-            "[animal] [adjective] não é coisa de amigo não", "não aguentou o rojão do [adjective]",
-
-            "nem fale comigo na porra do [adjective]", "vai limpar esse [animal] [adjective]",
-
-            "bora tomar uma pitú com [animal] [location]", "doutor [animal] [adjective] pra você",
-
-            "to aqui com minha tia [animal] [location]", "to gravando um album [adjective] [location]",
-
-            "tamo comendo um passa[animal] [location]", "elas passam a buceta no [animal] uma da outra",
-
-            "vou comprar pele de [animal] pra tatuar", "vou raspar o [animal] pra ir [location]",
-
-            "esse [animal] é puxadinho também q nem os olhinhos?", "vou sair do grupo se vocês não pararem de [verb] meu [animal] [location]",
-
-            "minha nova banda se chama the [adjective]s", "[animal] hoje em dia é uma coisa muito séria",
-
-            "hoje a comida é [animal] com leite", "eae [animal], ô [animal]", "[animal] assado no churras hoje [location]",
-
-            "o tira gosto vai ser [animal] com farinha", "to gravando sons de [animal] pra minha nova musica",
-
-            "novo selo [animal] [adjective] records", "jazz é [adjective]",
-
-            "ouçam minha nova musica: its never [adjective] in [animal]", "por que você não faz um gerador de [animal]",
-
-            "esse bixo nao merece nem [animal] melado no munguzá", "[animal]quiet",
-
-            "sinceramente não tenho mais tara nenhuma de ta [location]", "vocês tão fazendo um [animal] com a minha imagem sem a minha permissão [location]",
-
-            "vou imitar o silvio santos [location]", "engole o meu [animal] bando de fdp", "enfie um ingresso no [animal] e outro no ouvidinho"
-
-        ];
-
-        const animals = [
-
-            "cuzinho", "priquitinho", "peidinho", "cuzinho chinês", "buceta", "cuzinho", "teu cuzinho",
-
-            "cuscuz rechado", "novinho", "leitinho", "cocô", "cu do dimas", "césio 137", "amianto",
-
-            "cuzito", "cúsio 137", "batata", "jazz"
-
-        ];
-
-        const adjectives = [
-
-            "miudinho", "sujinho", "arrombadinho", "apertadinho", "gostosinho", "fedorentinho",
-
-            "mijado", "nazista", "desafinado", "suculento", "desaforado", "danado", "recheado",
-
-            "sem palavrão", "lo-fi", "virtuozinho", "noise"
-
-        ];
-
-        const verbs = [
-
-            "meter", "fuder", "cagar", "beijar", "trepar", "amar", "mijar", "tocar",
-
-            "mamar", "chorar", "comer", "chupar", "ensaiar"
-
-        ];
-
-        const locations = [
-
-            "em jacarecica", "no paulista", "aqui", "na casa do mago", "na amelia rosa",
-
-            "no shoegaze", "na casa do normando", "no album novo do sketch", "na casa do berna",
-
-            "na casa do seba", "na casa do berna", "em pilar", "na porra da rua", "na delegacia",
-
-            "no lofaizera", "no village", "na rabichola", "na crooked", "na casa do possa",
-
-            "na casa do paulo poeta", "no carro do normando"
-
-        ];
-
-
-
-        // URLs das imagens de fundo - CORRIGIDAS PARA LINKS DIRETOS
-
-        const BACKGROUND_CLOSED_MOUTH = 'https://i.imgur.com/uMcYYjX.jpg'; // Imagem com a boca fechada
-
-        const BACKGROUND_OPEN_MOUTH = 'https://i.imgur.com/xL6rg8p.jpg'; // Imagem com a boca aberta
-
-
-
-        // State
-
-        let currentPhrase = '';
-
-        let animationInterval; // Variável para controlar o intervalo da animação
-
-        let isMouthOpen = false; // Estado atual da boca (aberta/fechada)
-
-
-
-        // Helper functions
-
-        function getRandomItem(array) {
-
-            return array[Math.floor(Math.random() * array.length)];
-
-        }
-
-        function getRandomNumber(min, max) {
-
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-
-        }
-
-
-
-        // Função para alternar a imagem de fundo
-
-        function toggleMouthImage() {
-
-            const body = document.body;
-
-            if (isMouthOpen) {
-
-                body.style.backgroundImage = `url('${BACKGROUND_CLOSED_MOUTH}')`;
-
-            } else {
-
-                body.style.backgroundImage = `url('${BACKGROUND_OPEN_MOUTH}')`;
-
-            }
-
-            isMouthOpen = !isMouthOpen;
-
-        }
-
-
-
-        function startMouthAnimation() {
-
-            // Inicia a animação de boca alternando a cada 100ms
-
-            animationInterval = setInterval(toggleMouthImage, 100);
-
-        }
-
-
-
-        function stopMouthAnimation() {
-
-            clearInterval(animationInterval); // Para a animação
-
-            document.body.style.backgroundImage = `url('${BACKGROUND_CLOSED_MOUTH}')`; // Garante que a boca volte a fechar
-
-            isMouthOpen = false;
-
-        }
-
-
-
-        function speakPhrase(phrase) {
-
-            if ('speechSynthesis' in window) {
-
-                window.speechSynthesis.cancel();
-
-                
-
-                const utterance = new SpeechSynthesisUtterance(phrase);
-
-                
-
-                utterance.lang = 'pt-BR';
-
-                utterance.pitch = 0.5; 
-
-                utterance.rate = 1.1;
-
-
-
-                // Eventos para iniciar e parar a animação da boca
-
-                utterance.onstart = () => {
-
-                    startMouthAnimation();
-
-                };
-
-                utterance.onend = () => {
-
-                    stopMouthAnimation();
-
-                };
-
-                utterance.onerror = (event) => {
-
-                    console.error('Erro na síntese de fala:', event.error);
-
-                    stopMouthAnimation(); // Garante que a animação pare mesmo em caso de erro
-
-                };
-
-
-
-                window.speechSynthesis.speak(utterance);
-
-            } else {
-
-                console.log('Seu navegador não suporta a síntese de fala.');
-
-            }
-
-        }
-
-
-
-        function generatePhrase() {
-
-            let template = getRandomItem(templates);
-
-            let phrase = template;
-
-            phrase = phrase.replace(/\{(\d+)-(\d+)\}/g, (match, min, max) => getRandomNumber(parseInt(min), parseInt(max)));
-
-            phrase = phrase.replace(/\[animal\]/g, () => getRandomItem(animals));
-
-            phrase = phrase.replace(/\[adjective\]/g, () => getRandomItem(adjectives));
-
-            phrase = phrase.replace(/\[verb\]/g, () => getRandomItem(verbs));
-
-            phrase = phrase.replace(/\[location\]/g, () => getRandomItem(locations));
-
-            phrase = phrase.replace(/\{s\}/g, 's');
-
-            return phrase;
-
-        }
-
-
-
-        function displayPhrase(phrase) {
-
-            const display = document.getElementById('phraseDisplay');
-
-            display.innerHTML = `<span class="fade-in">${phrase}</span>`;
-
-            
-
-            speakPhrase(phrase);
-
-            
-
-            const downloadBtn = document.getElementById('downloadBtn');
-
-            downloadBtn.disabled = false;
-
-            downloadBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-
-        }
-
-
-
-        function downloadImage() {
-
-            if (!currentPhrase) return;
-
-            // Para o download da imagem, sempre usaremos a boca fechada para o resultado final
-
-            stopMouthAnimation(); 
-
-
-
-            const canvas = document.createElement('canvas');
-
-            const ctx = canvas.getContext('2d');
-
-            canvas.width = 800;
-
-            canvas.height = 600;
-
-            const img = new Image();
-
-            img.crossOrigin = 'anonymous';
-
-            
-
-            // Usar a imagem de boca fechada para o download
-
-            img.src = BACKGROUND_CLOSED_MOUTH; 
-
-
-
-            img.onload = function() {
-
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.font = 'italic 35px Tahoma, sans-serif';
-
-                ctx.fillStyle = '#ffe169';
-
-                ctx.textAlign = 'center';
-
-                ctx.textBaseline = 'middle';
-
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-
-                ctx.shadowBlur = 8;
-
-                ctx.shadowOffsetX = 2;
-
-                ctx.shadowOffsetY = 2;
-
-                function wrapText(text, x, y, maxWidth, lineHeight) {
-
-                    const words = text.split(' ');
-
-                    let line = '';
-
-                    let lines = [];
-
-                    for (let n = 0; n < words.length; n++) {
-
-                        const testLine = line + words[n] + ' ';
-
-                        const metrics = ctx.measureText(testLine);
-
-                        const testWidth = metrics.width;
-
-                        if (testWidth > maxWidth && n > 0) {
-
-                            lines.push(line);
-
-                            line = words[n] + ' ';
-
-                        } else {
-
-                            line = testLine;
-
-                        }
-
-                    }
-
-                    lines.push(line);
-
-                    const startY = y - ((lines.length - 1) * lineHeight) / 2;
-
-                    for (let i = 0; i < lines.length; i++) {
-
-                        ctx.fillText(lines[i], x, startY + (i * lineHeight));
-
-                    }
-
-                }
-
-                wrapText(currentPhrase, canvas.width / 2, canvas.height / 2, canvas.width - 100, 50);
-
-                canvas.toBlob(function(blob) {
-
-                    const url = URL.createObjectURL(blob);
-
-                    const a = document.createElement('a');
-
-                    a.href = url;
-
-                    a.download = 'frase-aleatoria.jpg';
-
-                    document.body.appendChild(a);
-
-                    a.click();
-
-                    document.body.removeChild(a);
-
-                    URL.revokeObjectURL(url);
-
-                }, 'image/jpeg', 0.9);
-
-            };
-
-        }
-
-
-
-        // Event listeners
-
-        document.getElementById('generateBtn').addEventListener('click', () => {
-
-            currentPhrase = generatePhrase();
-
-            displayPhrase(currentPhrase);
-
-        });
-
-        document.getElementById('downloadBtn').addEventListener('click', downloadImage);
-
-
-
-        // Keyboard shortcut
-
-        document.addEventListener('keydown', (e) => {
-
-            if (e.key === ' ' && e.target.tagName !== 'INPUT') {
-
-                e.preventDefault();
-
-                document.getElementById('generateBtn').click();
-
-            }
-
-        });
-
-    </script>
-
+    <div class="relative z-10 min-h-screen">
+        <div class="pt-8 pb-4">
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button id="generateBtn" class="generate-btn text-white font-semibold py-4 px-8 rounded-xl shadow-lg text-xl">
+                    Gerar Frase
+                </button>
+                <button id="downloadBtn" class="copy-btn text-white font-semibold py-4 px-8 rounded-xl shadow-lg opacity-50 cursor-not-allowed text-xl" disabled>
+                    Baixar Imagem
+                </button>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-0 left-0 right-0 pb-8">
+            <div class="text-center max-w-4xl mx-auto px-4">
+                <div id="phraseDisplay" class="min-h-[200px] flex items-center justify-center text-shadow-lg max-w-md mx-auto" style="font-family: Tahoma, sans-serif; font-size: 35px; color: #ffe169; font-style: italic; word-wrap: break-word; hyphens: auto; line-height: 1.4;">
+                    <span class="opacity-80">Clique para gerar uma frase!</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data arrays (mantidos como estavam)
+        const templates = [
+            "esse [animal] é [adjective]!", "eu quero [verb] nesse [animal].", "é [animal] ou [animal]?",
+            "tem que ter pelo menos {1-10} [animal]{s} [location]!", "o [animal] ta bonito [adjective]!",
+            "vamo comer [animal] [location].", "meia duzia de [animal] [adjective] [location]",
+            "maionese com gosto de [animal]", "escutem aí meu album novo seus [adjective]",
+            "o melhor album de rap é o [animal] [adjective]", "só como [animal] recheado",
+            "[animal] [adjective] não é coisa de amigo não", "não aguentou o rojão do [adjective]",
+            "nem fale comigo na porra do [adjective]", "vai limpar esse [animal] [adjective]",
+            "bora tomar uma pitú com [animal] [location]", "doutor [animal] [adjective] pra você",
+            "to aqui com minha tia [animal] [location]", "to gravando um album [adjective] [location]",
+            "tamo comendo um passa[animal] [location]", "elas passam a buceta no [animal] uma da outra",
+            "vou comprar pele de [animal] pra tatuar", "vou raspar o [animal] pra ir [location]",
+            "esse [animal] é puxadinho também q nem os olhinhos?", "vou sair do grupo se vocês não pararem de [verb] meu [animal] [location]",
+            "minha nova banda se chama the [adjective]s", "[animal] hoje em dia é uma coisa muito séria",
+            "hoje a comida é [animal] com leite", "eae [animal], ô [animal]", "[animal] assado no churras hoje [location]",
+            "o tira gosto vai ser [animal] com farinha", "to gravando sons de [animal] pra minha nova musica",
+            "novo selo [animal] [adjective] records", "jazz é [adjective]",
+            "ouçam minha nova musica: its never [adjective] in [animal]", "por que você não faz um gerador de [animal]",
+            "esse bixo nao merece nem [animal] melado no munguzá", "[animal]quiet",
+            "sinceramente não tenho mais tara nenhuma de ta [location]", "vocês tão fazendo um [animal] com a minha imagem sem a minha permissão [location]",
+            "vou imitar o silvio santos [location]", "engole o meu [animal] bando de fdp", "enfie um ingresso no [animal] e outro no ouvidinho"
+        ];
+        const animals = [
+            "cuzinho", "priquitinho", "peidinho", "cuzinho chinês", "buceta", "cuzinho", "teu cuzinho",
+            "cuscuz rechado", "novinho", "leitinho", "cocô", "cu do dimas", "césio 137", "amianto",
+            "cuzito", "cúsio 137", "batata", "jazz"
+        ];
+        const adjectives = [
+            "miudinho", "sujinho", "arrombadinho", "apertadinho", "gostosinho", "fedorentinho",
+            "mijado", "nazista", "desafinado", "suculento", "desaforado", "danado", "recheado",
+            "sem palavrão", "lo-fi", "virtuozinho", "noise"
+        ];
+        const verbs = [
+            "meter", "fuder", "cagar", "beijar", "trepar", "amar", "mijar", "tocar",
+            "mamar", "chorar", "comer", "chupar", "ensaiar"
+        ];
+        const locations = [
+            "em jacarecica", "no paulista", "aqui", "na casa do mago", "na amelia rosa",
+            "no shoegaze", "na casa do normando", "no album novo do sketch", "na casa do berna",
+            "na casa do seba", "na casa do berna", "em pilar", "na porra da rua", "na delegacia",
+            "no lofaizera", "no village", "na rabichola", "na crooked", "na casa do possa",
+            "na casa do paulo poeta", "no carro do normando"
+        ];
+
+        // URLs das imagens de fundo - CORRIGIDAS PARA LINKS DIRETOS
+        const BACKGROUND_CLOSED_MOUTH = 'https://i.imgur.com/uMcYYjX.jpg'; // Imagem com a boca fechada
+        const BACKGROUND_OPEN_MOUTH = 'https://i.imgur.com/xL6rg8p.jpg'; // Imagem com a boca aberta
+
+        // State
+        let currentPhrase = '';
+        let animationInterval; // Variável para controlar o intervalo da animação
+        let isMouthOpen = false; // Estado atual da boca (aberta/fechada)
+
+        // Helper functions
+        function getRandomItem(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+        function getRandomNumber(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // Função para alternar a imagem de fundo
+        function toggleMouthImage() {
+            const body = document.body;
+            if (isMouthOpen) {
+                body.style.backgroundImage = `url('${BACKGROUND_CLOSED_MOUTH}')`;
+            } else {
+                body.style.backgroundImage = `url('${BACKGROUND_OPEN_MOUTH}')`;
+            }
+            isMouthOpen = !isMouthOpen;
+        }
+
+        function startMouthAnimation() {
+            // Inicia a animação de boca alternando a cada 100ms
+            animationInterval = setInterval(toggleMouthImage, 100);
+        }
+
+        function stopMouthAnimation() {
+            clearInterval(animationInterval); // Para a animação
+            document.body.style.backgroundImage = `url('${BACKGROUND_CLOSED_MOUTH}')`; // Garante que a boca volte a fechar
+            isMouthOpen = false;
+        }
+
+        function speakPhrase(phrase) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(phrase);
+                
+                utterance.lang = 'pt-BR';
+                utterance.pitch = 0.5; 
+                utterance.rate = 1.1;
+
+                // Eventos para iniciar e parar a animação da boca
+                utterance.onstart = () => {
+                    startMouthAnimation();
+                };
+                utterance.onend = () => {
+                    stopMouthAnimation();
+                };
+                utterance.onerror = (event) => {
+                    console.error('Erro na síntese de fala:', event.error);
+                    stopMouthAnimation(); // Garante que a animação pare mesmo em caso de erro
+                };
+
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.log('Seu navegador não suporta a síntese de fala.');
+            }
+        }
+
+        function generatePhrase() {
+            let template = getRandomItem(templates);
+            let phrase = template;
+            phrase = phrase.replace(/\{(\d+)-(\d+)\}/g, (match, min, max) => getRandomNumber(parseInt(min), parseInt(max)));
+            phrase = phrase.replace(/\[animal\]/g, () => getRandomItem(animals));
+            phrase = phrase.replace(/\[adjective\]/g, () => getRandomItem(adjectives));
+            phrase = phrase.replace(/\[verb\]/g, () => getRandomItem(verbs));
+            phrase = phrase.replace(/\[location\]/g, () => getRandomItem(locations));
+            phrase = phrase.replace(/\{s\}/g, 's');
+            return phrase;
+        }
+
+        function displayPhrase(phrase) {
+            const display = document.getElementById('phraseDisplay');
+            display.innerHTML = `<span class="fade-in">${phrase}</span>`;
+            
+            speakPhrase(phrase);
+            
+            const downloadBtn = document.getElementById('downloadBtn');
+            downloadBtn.disabled = false;
+            downloadBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        function downloadImage() {
+            if (!currentPhrase) return;
+            // Para o download da imagem, sempre usaremos a boca fechada para o resultado final
+            stopMouthAnimation(); 
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 800;
+            canvas.height = 600;
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            // Usar a imagem de boca fechada para o download
+            img.src = BACKGROUND_CLOSED_MOUTH; 
+
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.font = 'italic 35px Tahoma, sans-serif';
+                ctx.fillStyle = '#ffe169';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+                function wrapText(text, x, y, maxWidth, lineHeight) {
+                    const words = text.split(' ');
+                    let line = '';
+                    let lines = [];
+                    for (let n = 0; n < words.length; n++) {
+                        const testLine = line + words[n] + ' ';
+                        const metrics = ctx.measureText(testLine);
+                        const testWidth = metrics.width;
+                        if (testWidth > maxWidth && n > 0) {
+                            lines.push(line);
+                            line = words[n] + ' ';
+                        } else {
+                            line = testLine;
+                        }
+                    }
+                    lines.push(line);
+                    const startY = y - ((lines.length - 1) * lineHeight) / 2;
+                    for (let i = 0; i < lines.length; i++) {
+                        ctx.fillText(lines[i], x, startY + (i * lineHeight));
+                    }
+                }
+                wrapText(currentPhrase, canvas.width / 2, canvas.height / 2, canvas.width - 100, 50);
+                canvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'frase-aleatoria.jpg';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 'image/jpeg', 0.9);
+            };
+        }
+
+        // Event listeners
+        document.getElementById('generateBtn').addEventListener('click', () => {
+            currentPhrase = generatePhrase();
+            displayPhrase(currentPhrase);
+        });
+        document.getElementById('downloadBtn').addEventListener('click', downloadImage);
+
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                document.getElementById('generateBtn').click();
+            }
+        });
+    </script>
 </body>
-
 </html>
