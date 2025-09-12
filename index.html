@@ -9,8 +9,10 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .gradient-bg {
+            /* Imagem padrão de boca fechada */
             background: url('https://i.imgur.com/zUqFgmq.jpg') center/cover no-repeat;
             position: relative;
+            transition: background-image 0.05s ease-in-out; /* Transição suave para a imagem de fundo */
         }
         .gradient-bg::before {
             content: '';
@@ -83,7 +85,7 @@
     </div>
 
     <script>
-        // Data arrays
+        // Data arrays (mantidos como estavam)
         const templates = [
             "esse [animal] é [adjective]!", "eu quero [verb] nesse [animal].", "é [animal] ou [animal]?",
             "tem que ter pelo menos {1-10} [animal]{s} [location]!", "o [animal] ta bonito [adjective]!",
@@ -128,10 +130,14 @@
             "na casa do paulo poeta", "no carro do normando"
         ];
 
+        // URLs das imagens de fundo
+        const BACKGROUND_CLOSED_MOUTH = 'https://i.imgur.com/zUqFgmq.jpg'; // Imagem com a boca fechada
+        const BACKGROUND_OPEN_MOUTH = 'https://i.imgur.com/83I8rVq.jpeg'; // Imagem com a boca aberta (a que você enviou)
+
         // State
         let currentPhrase = '';
-        let totalGenerated = 0;
-        let phraseHistory = [];
+        let animationInterval; // Variável para controlar o intervalo da animação
+        let isMouthOpen = false; // Estado atual da boca (aberta/fechada)
 
         // Helper functions
         function getRandomItem(array) {
@@ -140,8 +146,29 @@
         function getRandomNumber(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
-        
-        // --- FUNÇÃO DE ÁUDIO MODIFICADA ---
+
+        // Função para alternar a imagem de fundo
+        function toggleMouthImage() {
+            const body = document.body;
+            if (isMouthOpen) {
+                body.style.backgroundImage = `url('${BACKGROUND_CLOSED_MOUTH}')`;
+            } else {
+                body.style.backgroundImage = `url('${BACKGROUND_OPEN_MOUTH}')`;
+            }
+            isMouthOpen = !isMouthOpen;
+        }
+
+        function startMouthAnimation() {
+            // Inicia a animação de boca alternando a cada 100ms
+            animationInterval = setInterval(toggleMouthImage, 100);
+        }
+
+        function stopMouthAnimation() {
+            clearInterval(animationInterval); // Para a animação
+            document.body.style.backgroundImage = `url('${BACKGROUND_CLOSED_MOUTH}')`; // Garante que a boca volte a fechar
+            isMouthOpen = false;
+        }
+
         function speakPhrase(phrase) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
@@ -149,22 +176,26 @@
                 const utterance = new SpeechSynthesisUtterance(phrase);
                 
                 utterance.lang = 'pt-BR';
-                
-                // --- CONFIGURAÇÕES PARA A VOZ ROBOTIZADA ---
-                // Tom da voz (valores de 0 a 2, onde 1 é o normal).
-                // Valores mais baixos soam mais graves e robóticos.
-                utterance.pitch = 4.5; 
-                
-                // Velocidade da fala (valores de 0.1 a 10, onde 1 é o normal).
-                utterance.rate = 2.0;
-                // --- FIM DAS CONFIGURAÇÕES ---
+                utterance.pitch = 0.5; 
+                utterance.rate = 1.1;
+
+                // Eventos para iniciar e parar a animação da boca
+                utterance.onstart = () => {
+                    startMouthAnimation();
+                };
+                utterance.onend = () => {
+                    stopMouthAnimation();
+                };
+                utterance.onerror = (event) => {
+                    console.error('Erro na síntese de fala:', event.error);
+                    stopMouthAnimation(); // Garante que a animação pare mesmo em caso de erro
+                };
 
                 window.speechSynthesis.speak(utterance);
             } else {
                 console.log('Seu navegador não suporta a síntese de fala.');
             }
         }
-        // --- FIM DA MODIFICAÇÃO ---
 
         function generatePhrase() {
             let template = getRandomItem(templates);
@@ -191,12 +222,19 @@
 
         function downloadImage() {
             if (!currentPhrase) return;
+            // Para o download da imagem, sempre usaremos a boca fechada para o resultado final
+            stopMouthAnimation(); 
+
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = 800;
             canvas.height = 600;
             const img = new Image();
             img.crossOrigin = 'anonymous';
+            
+            // Usar a imagem de boca fechada para o download
+            img.src = BACKGROUND_CLOSED_MOUTH; 
+
             img.onload = function() {
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
@@ -242,7 +280,8 @@
                     URL.revokeObjectURL(url);
                 }, 'image/jpeg', 0.9);
             };
-            img.src = 'https://i.imgur.com/zUqFgmq.jpg';
+            // AQUI ESTAVA BACKGROUND_ORIGINAL, AGORA É BACKGROUND_CLOSED_MOUTH
+            // img.src = BACKGROUND_ORIGINAL; // Garante que o download seja com a boca fechada
         }
 
         // Event listeners
