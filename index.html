@@ -141,26 +141,30 @@
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
         
-        // --- FUNÇÃO DE ÁUDIO ADICIONADA ---
+        // --- FUNÇÃO DE ÁUDIO MODIFICADA ---
         function speakPhrase(phrase) {
-            // Verifica se o navegador suporta a API de fala
             if ('speechSynthesis' in window) {
-                // Cancela qualquer fala que esteja em andamento para não sobrepor
                 window.speechSynthesis.cancel();
                 
-                // Cria um novo objeto de "fala" com a frase
                 const utterance = new SpeechSynthesisUtterance(phrase);
                 
-                // Define o idioma para português do Brasil para a pronúncia correta
                 utterance.lang = 'pt-BR';
                 
-                // Manda o navegador falar a frase
+                // --- CONFIGURAÇÕES PARA A VOZ ROBOTIZADA ---
+                // Tom da voz (valores de 0 a 2, onde 1 é o normal).
+                // Valores mais baixos soam mais graves e robóticos.
+                utterance.pitch = 0.5; 
+                
+                // Velocidade da fala (valores de 0.1 a 10, onde 1 é o normal).
+                utterance.rate = 1.1;
+                // --- FIM DAS CONFIGURAÇÕES ---
+
                 window.speechSynthesis.speak(utterance);
             } else {
                 console.log('Seu navegador não suporta a síntese de fala.');
             }
         }
-        // --- FIM DA FUNÇÃO ADICIONADA ---
+        // --- FIM DA MODIFICAÇÃO ---
 
         function generatePhrase() {
             let template = getRandomItem(templates);
@@ -178,10 +182,8 @@
             const display = document.getElementById('phraseDisplay');
             display.innerHTML = `<span class="fade-in">${phrase}</span>`;
             
-            // --- CHAMADA PARA A FUNÇÃO DE ÁUDIO ---
             speakPhrase(phrase);
             
-            // Habilita o botão de download
             const downloadBtn = document.getElementById('downloadBtn');
             downloadBtn.disabled = false;
             downloadBtn.classList.remove('opacity-50', 'cursor-not-allowed');
