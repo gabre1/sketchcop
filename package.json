@@ -1,0 +1,13 @@
+{
+  "name": "gerador-frases-vercel",
+  "version": "1.0.0",
+  "description": "Backend para o gerador de frases com ElevenLabs no Vercel",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node api/index.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "express": "^4.19.2"
+  }
+}
