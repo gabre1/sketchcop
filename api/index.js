@@ -4,7 +4,7 @@ const axios = require('axios');
 const app = express();
 app.use(express.json());
 
-// A chave da API será lida das Environment Variables do Vercel
+
 const apiKey = process.env.ELEVENLABS_API_KEY;
 const voiceId = '3sIPB0HU61vlpMzHtxAs';
 
@@ -42,5 +42,5 @@ app.post('/api', async (req, res) => {
     }
 });
 
-// Vercel vai gerenciar o servidor, então não precisamos de app.listen
+
 module.exports = app;
