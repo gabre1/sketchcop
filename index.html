@@ -94,7 +94,7 @@
                 currentAudio.pause();
                 currentAudio.currentTime = 0;
             }
-            // A URL agora é relativa, apontando para nossa função de backend no Vercel
+           
             const url = '/api';
             const generateBtn = document.getElementById('generateBtn');
             generateBtn.disabled = true;
@@ -150,7 +150,7 @@
             downloadBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         }
         
-        // A função downloadImage continua a mesma
+        
         function downloadImage() {
             if (!currentPhrase) return;
             stopMouthAnimation();
@@ -221,4 +221,5 @@
 </body>
 
 </html>
+
 
